@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Squad Quiz Live — Raising Girls</title>
+<style>
+  :root{
+    --red:#F44032; --yellow:#F6DA53; --teal:#1E9E8A; --gold:#C9A227; --plum:#7B4B9E;
+    --ink:#14100F; --ink2:#221B19; --line:#3A2F2C; --paper:#FFF8F5; --mute:#A8968F; --green:#2FBF71;
+    --display:ui-rounded,"SF Pro Rounded","Segoe UI Variable Display","Trebuchet MS",system-ui,sans-serif;
+    --body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --util:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box} html,body{margin:0;padding:0}
+  body{font-family:var(--body);background:var(--ink);color:var(--paper);line-height:1.5;
+    min-height:100vh;display:flex;flex-direction:column}
+  .bar{background:var(--ink2);border-bottom:1px solid var(--line);padding:9px 0}
+  .bar .in{max-width:1200px;margin:0 auto;padding:0 18px;display:flex;gap:11px;align-items:center;flex-wrap:wrap}
+  .bar b{font-family:var(--display);font-size:15px}
+  .tag{background:var(--yellow);color:var(--ink);font-family:var(--util);font-size:9.5px;
+    letter-spacing:.11em;text-transform:uppercase;padding:3px 8px;border-radius:3px;font-weight:700}
+  .tag.demo{background:var(--plum);color:#fff}
+  .bar .rt{margin-left:auto;font-family:var(--util);font-size:11px;color:var(--mute)}
+  .wrap{flex:1;max-width:1200px;width:100%;margin:0 auto;padding:26px 18px 50px}
+  .scr{display:none}.scr.on{display:block}
+
+  h1.big{font-family:var(--display);font-size:clamp(26px,4vw,46px);line-height:1.18;margin:0 0 6px;font-weight:800;letter-spacing:-.5px}
+  h2.sec{font-family:var(--display);font-size:20px;margin:0 0 4px;font-weight:800}
+  p.sub{color:var(--mute);font-size:14.5px;margin:0 0 18px}
+  .kicker{font-family:var(--util);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--yellow);font-weight:700;margin:0 0 10px}
+
+  .btn{background:var(--ink2);border:1.5px solid var(--line);color:var(--paper);border-radius:12px;
+    padding:13px 22px;font-family:var(--body);font-size:15.5px;cursor:pointer}
+  .btn:hover{border-color:var(--yellow)}
+  .btn.go{background:var(--red);border-color:var(--red);font-weight:700}
+  .btn.win{background:var(--green);border-color:var(--green);color:#03270f;font-weight:700}
+  .btn:disabled{opacity:.35;cursor:not-allowed}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+  .card{background:var(--ink2);border:1px solid var(--line);border-radius:18px;padding:28px 30px;margin-bottom:16px}
+  .card.mid{max-width:460px;margin:40px auto}
+  input{background:#0E0B0A;border:1.5px solid var(--line);color:var(--paper);border-radius:11px;
+    padding:14px 15px;font-family:var(--body);font-size:17px;width:100%}
+  input:focus{outline:0;border-color:var(--yellow)}
+  label.f{display:block;font-family:var(--display);font-size:14.5px;margin:0 0 6px}
+  .pin{font-family:var(--util);font-size:clamp(40px,9vw,92px);font-weight:700;letter-spacing:.14em;
+    color:var(--yellow);line-height:1;margin:6px 0 4px}
+  .joinurl{font-family:var(--util);font-size:clamp(13px,1.6vw,18px);color:var(--paper);word-break:break-all}
+
+  .names{display:flex;gap:9px;flex-wrap:wrap;margin:18px 0 6px;min-height:44px}
+  .nm{background:var(--ink2);border:1.5px solid var(--line);border-radius:22px;padding:9px 17px;
+    font-family:var(--display);font-weight:700;font-size:16px;animation:pop .3s ease}
+  @keyframes pop{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+
+  .timer{height:10px;background:var(--line);border-radius:6px;overflow:hidden;margin-bottom:16px}
+  .timer i{display:block;height:100%;width:100%;background:var(--yellow);transition:width .25s linear}
+  .opts{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:14px}
+  .opt{display:flex;gap:14px;align-items:center;border-radius:15px;padding:20px 22px;border:3px solid transparent;
+    font-size:clamp(16px,1.7vw,21px);font-family:var(--display);font-weight:600;color:#fff;
+    text-align:left;cursor:default;width:100%;transition:opacity .25s,border-color .25s,transform .1s}
+  .opt .sh{font-size:20px;opacity:.9;flex:0 0 auto}
+  .opt .ct{margin-left:auto;font-family:var(--util);font-size:15px;opacity:.9}
+  .o0{background:var(--red)} .o1{background:var(--plum)} .o2{background:var(--teal)} .o3{background:var(--gold);color:#1A1200}
+  .dim .opt{opacity:.25}
+  .dim .opt.win{opacity:1;border-color:#fff;box-shadow:0 0 0 6px rgba(255,255,255,.14)}
+  .tapp .opt{cursor:pointer;min-height:118px;justify-content:center;font-size:clamp(18px,5vw,26px)}
+  .tapp .opt:active{transform:scale(.97)}
+  .teach{background:var(--paper);color:var(--ink);border-radius:15px;padding:20px 24px;margin-bottom:14px;border-left:8px solid var(--yellow)}
+  .teach b{font-family:var(--display);font-size:12.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--red);display:block;margin-bottom:4px}
+  .teach p{margin:0;font-size:clamp(15.5px,1.6vw,19px)}
+
+  .lead{display:grid;gap:10px}
+  .lrow{display:flex;gap:14px;align-items:center;background:var(--ink2);border:1px solid var(--line);border-radius:14px;padding:14px 19px}
+  .lrow.me{border-color:var(--yellow)}
+  .lrow .md{font-size:21px;width:30px}
+  .lrow .n{font-family:var(--display);font-size:clamp(16px,2vw,22px);font-weight:800;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .lrow .v{font-family:var(--display);font-size:clamp(18px,2.3vw,26px);font-weight:800;color:var(--yellow)}
+
+  .waitmk{font-size:54px;text-align:center;margin:26px 0 12px}
+  .center{text-align:center}
+  .note{background:#3A2A12;border:1px solid var(--yellow);border-radius:12px;padding:13px 17px;font-size:14px;margin-top:16px}
+  .note b{font-family:var(--display);display:block;margin-bottom:3px}
+  .err{background:#3A1614;border:1px solid var(--red);border-radius:12px;padding:13px 17px;font-size:14px;margin-top:14px;display:none}
+  .err.on{display:block}
+  code{font-family:var(--util);font-size:13px;background:#000;padding:2px 6px;border-radius:4px}
+  @media(max-width:700px){.opts{grid-template-columns:1fr}.card{padding:22px 20px}}
+</style>
+</head>
+<body>
+
+<div class="bar"><div class="in">
+  <b>Squad Quiz Live</b><span class="tag" id="modeTag">Raising Girls</span>
+  <span class="rt" id="rt"></span>
+</div></div>
+
+<div class="wrap">
+
+<!-- ---------- HOME ---------- -->
+<section class="scr on" id="s-home">
+  <div class="card mid">
+    <p class="kicker">Parents' game night</p>
+    <h1 class="big">Squad Quiz</h1>
+    <p class="sub">Thirty questions. Five rounds. Everyone answers on their phone.</p>
+    <div class="row" style="flex-direction:column;align-items:stretch;gap:10px">
+      <button class="btn go" id="bHost">Host a game</button>
+      <button class="btn" id="bJoin">Join with a code</button>
+      <button class="btn" id="bSolo">Try it solo — no setup</button>
+    </div>
+    <div class="note" id="cfgNote"><b>Not connected yet</b>
+      Solo mode works right now. For phones to join, add your two Supabase keys at the top of this file — the setup guide is in the notes that came with it.</div>
+  </div>
+</section>
+
+<!-- ---------- JOIN ---------- -->
+<section class="scr" id="s-join">
+  <div class="card mid">
+    <p class="kicker">Join the game</p>
+    <h1 class="big">Enter the code</h1>
+    <div style="margin:18px 0 12px"><label class="f">Game code</label>
+      <input id="jCode" inputmode="numeric" maxlength="4" placeholder="4821" style="font-family:var(--util);font-size:30px;letter-spacing:.2em;text-align:center"></div>
+    <div style="margin-bottom:16px"><label class="f">Your name</label>
+      <input id="jName" maxlength="18" placeholder="Mrs Okafor"></div>
+    <button class="btn go" id="bEnter" style="width:100%">Join</button>
+    <div class="err" id="jErr"></div>
+  </div>
+</section>
+
+<!-- ---------- HOST LOBBY ---------- -->
+<section class="scr" id="s-lobby">
+  <div class="center">
+    <p class="kicker">Go to this page on your phone</p>
+    <p class="joinurl" id="lUrl"></p>
+    <p class="kicker" style="margin-top:22px">and enter this code</p>
+    <div class="pin" id="lPin">----</div>
+  </div>
+  <div class="card" style="margin-top:26px">
+    <h2 class="sec"><span id="lCount">0</span> in the room</h2>
+    <p class="sub">Names appear as people join.</p>
+    <div class="names" id="lNames"></div>
+  </div>
+  <div class="row"><button class="btn go" id="bStart">Start the quiz</button>
+    <span class="rt" id="lHint">Waiting for players…</span></div>
+</section>
+
+<!-- ---------- HOST QUESTION ---------- -->
+<section class="scr" id="s-q">
+  <div class="row" style="margin-bottom:12px">
+    <span class="kicker" id="qRound" style="margin:0"></span>
+    <span class="rt" id="qCount" style="margin-left:auto"></span>
+  </div>
+  <div class="timer"><i id="qFill"></i></div>
+  <div class="card"><h1 class="big" id="qText"></h1></div>
+  <div class="opts" id="qOpts"></div>
+  <div id="qTeach"></div>
+  <div class="row">
+    <button class="btn win" id="bReveal">Reveal</button>
+    <button class="btn go" id="bNext">Next question</button>
+    <button class="btn" id="bBoard">Show leaderboard</button>
+    <span class="rt" id="qIn"></span>
+  </div>
+</section>
+
+<!-- ---------- HOST LEADERBOARD ---------- -->
+<section class="scr" id="s-board">
+  <h2 class="sec" id="bTitle">Leaderboard</h2>
+  <p class="sub" id="bSub"></p>
+  <div class="lead" id="bList"></div>
+  <div class="row" style="margin-top:20px"><button class="btn go" id="bBack">Back to the quiz</button></div>
+</section>
+
+<!-- ---------- PLAYER ---------- -->
+<section class="scr" id="s-play">
+  <div id="pWait" class="center">
+    <div class="waitmk" id="pMark">👋</div>
+    <h1 class="big" id="pMsg">You're in</h1>
+    <p class="sub" id="pSub">Look at the big screen. Your buttons appear when the question does.</p>
+    <div class="lead" id="pLead" style="margin-top:22px"></div>
+  </div>
+  <div id="pAsk" style="display:none">
+    <div class="timer"><i id="pFill"></i></div>
+    <p class="kicker" id="pQn"></p>
+    <div class="opts tapp" id="pOpts"></div>
+  </div>
+</section>
+
+</div>
+
+<script>
+/* =========================================================
+   CONFIG — paste your two Supabase values between the quotes.
+   Leave them empty and the page still works in solo mode.
+   ========================================================= */
+const SB_URL = "https://xbaungiwhlyqgsjkutxp.supabase.co";
+const SB_KEY = "sb_publishable_C34cvjyLTooxZI1L6kjftA_NAdRiM53";
+/* ========================================================= */
+
+const LIMIT=20000;               // milliseconds per question
+const LIVE = !!(SB_URL && SB_KEY);
+
+/* ---------- questions ---------- */
+const R=["Nigeria","Skincare","Raising Confident Girls","Online Safety & Speaking Up","International Current Affairs"];
+const Q=[
+{r:0,q:`Nigeria gained independence from Britain on:`,o:[`1 January 1960`,`1 October 1960`,`1 October 1963`,`15 January 1966`],a:1,
+ t:`1 October 1960.`},
+{r:0,q:`Who was Nigeria's first Prime Minister?`,o:[`Nnamdi Azikiwe`,`Obafemi Awolowo`,`Abubakar Tafawa Balewa`,`Ahmadu Bello`],a:2,
+ t:`Sir Abubakar Tafawa Balewa.`},
+{r:0,q:`Nigeria became a republic in:`,o:[`1960`,`1963`,`1966`,`1970`],a:1,
+ t:`1963 — three years after independence.`},
+{r:0,q:`What was the name of the breakaway state during the Nigerian Civil War?`,o:[`Eastern Nigeria`,`Biafra`,`Republic of the East`,`Niger State`],a:1,
+ t:`Biafra.`},
+{r:0,q:`Nigeria's Civil War ended in:`,o:[`1967`,`1969`,`1970`,`1975`],a:2,
+ t:`January 1970.`},
+{r:0,q:`Before the naira, Nigeria used the:`,o:[`Dollar`,`Pound`,`Shilling`,`Franc`],a:1,
+ t:`The Nigerian pound, until 1973.`},
+{r:0,q:`Who was Nigeria's first Nobel Prize winner?`,o:[`Chinua Achebe`,`Wole Soyinka`,`Ben Okri`,`Chimamanda Ngozi Adichie`],a:1,
+ t:`Wole Soyinka, 1986.`},
+{r:0,q:`Wole Soyinka won the Nobel Prize for:`,o:[`Peace`,`Literature`,`Economics`,`Political Science`],a:1,
+ t:`Literature — the first African to win it.`},
+{r:0,q:`Which city was Nigeria's federal capital before Abuja?`,o:[`Ibadan`,`Kaduna`,`Lagos`,`Kano`],a:2,
+ t:`Lagos. The capital formally moved in 1991.`},
+{r:0,q:`Nigeria returned to democratic civilian rule in:`,o:[`1993`,`1998`,`1999`,`2003`],a:2,
+ t:`1999.`},
+{r:0,q:`Which agency became famous when an official, asked for its website, said she had to ask her “Oga at the Top”?`,o:[`EFCC`,`NSCDC`,`FRSC`,`NAFDAC`],a:1,
+ t:`The Nigeria Security and Civil Defence Corps, in 2013.`},
+{r:0,q:`What supposedly swallowed ₦36 million belonging to JAMB?`,o:[`A goat`,`A monkey`,`A snake`,`A crocodile`],a:2,
+ t:`A snake. 2018. Nobody has recovered from it.`},
+{r:0,q:`What animal was reportedly blamed for ₦70 million going missing from the Northern Senators Forum?`,o:[`Snake`,`Monkey`,`Gorilla`,`Goat`],a:1,
+ t:`A monkey.`},
+{r:0,q:`Which animal was blamed for damaging former President Buhari's office while he was away?`,o:[`Rats`,`Monkeys`,`Termites`,`Cockroaches`],a:0,
+ t:`Rats.`},
+{r:0,q:`Which insect was blamed for eating documents relating to billions of naira?`,o:[`Mosquitoes`,`Cockroaches`,`Termites`,`Ants`],a:2,
+ t:`Termites.`},
+{r:0,q:`Which Nigerian agency conducts vehicle number plate registration and road safety enforcement?`,o:[`EFCC`,`NAFDAC`,`FRSC`,`NCC`],a:2,
+ t:`The Federal Road Safety Corps.`},
+{r:0,q:`Which schoolgirls' kidnapping in 2014 sparked the global #BringBackOurGirls campaign?`,o:[`Kaduna Girls`,`Chibok Girls`,`Maiduguri Girls`,`Yobe Girls`],a:1,
+ t:`The Chibok girls. Some have still never come home.`},
+{r:0,q:`Which Nigerian football team won Olympic gold in men's football in 1996?`,o:[`Super Eagles`,`Flying Eagles`,`Golden Eaglets`,`Dream Team`],a:3,
+ t:`The Dream Team — the first African side to win Olympic football gold.`},
+{r:0,q:`Which city hosted the 1996 Olympics?`,o:[`Los Angeles`,`Atlanta`,`Sydney`,`Barcelona`],a:1,
+ t:`Atlanta.`},
+{r:0,q:`Which Nigerian musician is regarded as the pioneer of Afrobeat?`,o:[`King Sunny Ade`,`Fela Kuti`,`2Baba`,`Burna Boy`],a:1,
+ t:`Fela Anikulapo Kuti.`},
+{r:0,q:`Which Nigerian organisation conducts the UTME?`,o:[`WAEC`,`JAMB`,`NECO`,`NUC`],a:1,
+ t:`JAMB.`},
+{r:0,q:`What was Nigeria's 2020 youth-led protest movement against police brutality called?`,o:[`#EndPolice`,`#EndSARS`,`#FixNigeria`,`#YouthRise`],a:1,
+ t:`#EndSARS.`},
+{r:0,q:`Which three naira notes were redesigned in 2022?`,o:[`₦50, ₦100 and ₦200`,`₦100, ₦200 and ₦500`,`₦200, ₦500 and ₦1,000`,`₦500, ₦1,000 and ₦2,000`],a:2,
+ t:`₦200, ₦500 and ₦1,000 — and the queues that followed.`},
+{r:0,q:`Nigeria's national anthem was changed back to “Nigeria, We Hail Thee” in:`,o:[`2022`,`2023`,`2024`,`2025`],a:2,
+ t:`May 2024.`},
+{r:0,q:`Which Nigerian businessman built the huge refinery in Lekki?`,o:[`Aliko Dangote`,`Tony Elumelu`,`Mike Adenuga`,`Femi Otedola`],a:0,
+ t:`Aliko Dangote.`},
+{r:0,q:`Nigeria became a BRICS partner country in:`,o:[`2023`,`2024`,`2025`,`2026`],a:2,
+ t:`January 2025.`},
+{r:0,q:`Which Nigerian music legend received a posthumous Grammy Lifetime Achievement Award in 2026?`,o:[`Fela Kuti`,`Oliver de Coque`,`King Sunny Ade`,`Ras Kimono`],a:0,
+ t:`Fela Kuti. (Verify before you read this one out.)`},
+{r:0,q:`At AFCON 2025, Nigeria won bronze by beating which country on penalties?`,o:[`Ghana`,`Egypt`,`Cameroon`,`Senegal`],a:1,
+ t:`Egypt, 4–2 on penalties. (Verify before you read this one out.)`},
+{r:0,q:`How many states does Nigeria have, not counting the FCT?`,o:[`30`,`36`,`37`,`24`],a:1,
+ t:`Thirty-six, plus the Federal Capital Territory.`},
+{r:0,q:`Which of these is NOT an animal Nigerians have heard blamed for missing government money or property?`,o:[`Snake`,`Monkey`,`Termite`,`Dinosaur`],a:3,
+ t:`Not yet, anyway.`},
+{r:1,q:`What should you generally use first in a basic skincare routine?`,o:[`Sunscreen`,`Cleanser`,`Moisturiser`,`Makeup`],a:1,
+ t:`Cleanser first — everything else goes onto clean skin.`},
+{r:1,q:`Which water is best for washing your face?`,o:[`Boiling hot`,`Lukewarm`,`Very cold`,`Salt water`],a:1,
+ t:`Lukewarm. Hot water strips the skin.`},
+{r:1,q:`What is the main purpose of a cleanser?`,o:[`Remove dirt, oil and impurities`,`Bleach the skin`,`Remove wrinkles permanently`,`Change your skin type`],a:0,
+ t:`To clean. Nothing more is being promised.`},
+{r:1,q:`What does moisturiser mainly do?`,o:[`Supports hydration and the skin barrier`,`Makes skin permanently lighter`,`Removes pores`,`Stops sweating`],a:0,
+ t:`It supports the barrier. Even oily skin needs it.`},
+{r:1,q:`Which comes last in a basic morning routine?`,o:[`Cleanser`,`Moisturiser`,`Sunscreen`,`Toner`],a:2,
+ t:`Sunscreen, always last.`},
+{r:1,q:`What does SPF protect against?`,o:[`UV radiation`,`Dust`,`Mosquito bites`,`Cold weather`],a:0,
+ t:`Ultraviolet radiation.`},
+{r:1,q:`What is a sensible everyday minimum SPF?`,o:[`SPF 5`,`SPF 10`,`SPF 30`,`SPF 2`],a:2,
+ t:`SPF 30 or above for daily use.`},
+{r:1,q:`“You only need sunscreen at the beach.”`,o:[`True`,`False`,`True in harmattan only`,`True for children only`],a:1,
+ t:`False. UV reaches you through cloud, through a window, and on the school run.`},
+{r:1,q:`Which contributes to premature skin ageing?`,o:[`Excessive UV exposure`,`Drinking water`,`Sleeping`,`Washing your face`],a:0,
+ t:`Sun exposure, by a distance.`},
+{r:1,q:`What is a patch test?`,o:[`Trying a product on a small area first`,`Applying it to your whole face`,`Testing whether skin is oily`,`Checking your skin tone`],a:0,
+ t:`A small area, for a few days, before your whole face.`},
+{r:1,q:`A new product causes severe burning or swelling. What do you do?`,o:[`Apply more`,`Stop and get medical advice`,`Scrub your face`,`Add another product`],a:1,
+ t:`Stop immediately. Skin does not have to hurt to be working.`},
+{r:1,q:`Which ingredient is commonly used for acne-prone skin?`,o:[`Salicylic acid`,`Sugar`,`Cooking oil`,`Flour`],a:0,
+ t:`Salicylic acid.`},
+{r:1,q:`Which vitamin is commonly used as an antioxidant in skincare?`,o:[`Vitamin C`,`Vitamin K`,`Vitamin D`,`Vitamin B12`],a:0,
+ t:`Vitamin C.`},
+{r:1,q:`Which is true about dark skin and sunscreen?`,o:[`It needs none at all`,`Melanin helps, but it is not enough protection`,`Only needed at the beach`,`Only needed by children`],a:1,
+ t:`Melanin gives some protection, nowhere near enough — and sun is why dark marks refuse to fade.`},
+{r:1,q:`What happens when someone scrubs their face aggressively and often?`,o:[`Irritation and barrier damage`,`Pores disappear`,`Skin becomes permanently perfect`,`Oil production stops`],a:0,
+ t:`You damage the barrier, and damaged skin produces more oil, not less.`},
+{r:1,q:`Which is best for a pimple?`,o:[`Squeezing it`,`Picking it with dirty fingers`,`Leaving it alone or treating it properly`,`Scratching it`],a:2,
+ t:`Leave it. Squeezing buys you a dark mark that outlasts the spot by months.`},
+{r:1,q:`Why should pillowcases be washed regularly?`,o:[`They collect sweat, oil, dirt and product residue`,`They make your face grow`,`They cure acne`,`They remove wrinkles`],a:0,
+ t:`Sweat, oil and product build up, and your face lies in it for eight hours.`},
+{r:1,q:`Which statement about expensive skincare is true?`,o:[`The more expensive the better`,`Expensive always works`,`Price alone does not decide whether it suits your skin`,`Cheap never works`],a:2,
+ t:`Price is not evidence. Ingredients and consistency are.`},
+{r:1,q:`Which matters more for healthy skin?`,o:[`Fifteen different products`,`A simple routine she can actually keep up`,`Changing products weekly`,`Copying a celebrity's routine`],a:1,
+ t:`Consistency beats complexity, every time.`},
+{r:1,q:`You have washed your face. Moisturiser and sunscreen. Which goes first?`,o:[`Sunscreen, then moisturiser`,`Moisturiser, then sunscreen`,`Both together`,`Neither — just go out`],a:1,
+ t:`Moisturiser first. Sunscreen is always the last thing on.`},
+{r:2,q:`Self-esteem is best described as:`,o:[`Knowing who you are, accepting it, and respecting it`,`Believing you are better than others`,`Feeling good about yourself`,`Being confident in front of people`],a:0,
+ t:`Self-awareness, self-acceptance, self-respect. Feelings come and go. Those three stay.`},
+{r:2,q:`Your daughter says "I'm so ugly." Which response opens the conversation?`,o:[`"Don't say that, you're beautiful!"`,`"Who told you that?"`,`"What happened today?"`,`"Everybody feels like that sometimes."`],a:2,
+ t:`Reassurance closes a conversation — she has been answered, so there is nothing more to say. A question keeps it open. And "who told you" sends you hunting for a villain instead of listening to your child.`},
+{r:2,q:`Which builds a girl's sense of worth most durably?`,o:[`Telling her she is beautiful every morning`,`Praising her results`,`Protecting her from failing`,`Letting her attempt something hard and struggle through it`],a:3,
+ t:`Worth that was given to her by your words can be taken away by somebody else's words. Worth she earned by surviving something difficult belongs to her.`},
+{r:2,q:`Which praise builds rather than pressures?`,o:[`"You are so brilliant."`,`"You kept going when it got hard."`,`"You are the best in your class."`,`"I knew you would win."`],a:1,
+ t:`Praise the process and she can repeat it. Praise the identity and she has something to protect — and a child protecting an identity stops taking risks.`},
+{r:2,q:`A girl is constantly putting herself down. What helps most?`,o:[`Telling her to stop saying those things`,`Changing the subject`,`Agreeing that it is hard`,`Teaching her to question the thought`],a:3,
+ t:`Is that true? Always? Who said it first? A girl who can interrogate her own thoughts does not need you in the room.`},
+{r:2,q:`Teaching a child how her actions land on other people is:`,o:[`Compliance training`,`Self-awareness`,`Discipline`,`Good manners`],a:1,
+ t:`Compliance adjusts her to a standard she did not choose. Awareness hands her the instrument and lets her choose. Same behaviour on the surface, opposite direction of authority.`},
+{r:2,q:`"Because I said so" reliably produces:`,o:[`Compliance while you are watching`,`Lasting obedience`,`Respect`,`Confidence`],a:0,
+ t:`A rule with no reason inside it only works within eyesight.`},
+{r:2,q:`Which of these is a real choice?`,o:[`"Do you want to do your homework, or do you want to be punished?"`,`"Would you rather do maths first or English first?"`,`"Do you want to obey me or not?"`,`"Why can't you just behave?"`],a:1,
+ t:`A choice with a threat in it is not a choice, it is a threat with extra words. A real choice is small, and both options are ones you can live with.`},
+{r:2,q:`Your fourteen-year-old wants to wear something you have said no to. Which approach holds when you are not there?`,o:[`Repeat the rule more firmly`,`Remove the item from the house`,`Give her the reason, and settle the boundary together`,`Warn her what will happen if she does`],a:2,
+ t:`One day she will be in a changing room with her friends and your money. The only thing going in there with her is the reason.`},
+{r:2,q:`When a girl owns a goal instead of her parent owning it:`,o:[`She works harder for approval`,`It makes no real difference`,`She becomes stubborn`,`She becomes consistent`],a:3,
+ t:`Nobody is consistent about somebody else's ambition. "She won't stick to her goals" and "the goal was never hers" are usually the same sentence.`},
+{r:2,q:`Enforcement teaches a child to manage ______. Buy-in teaches her to manage ______.`,o:[`Her time / her money`,`Your mood / herself`,`Her temper / her friends`,`Her schedule / her future`],a:1,
+ t:`A child raised on enforcement becomes expert at reading your face. That is a real skill. It is just not the one we wanted.`},
+{r:2,q:`She breaks a rule you had explained and agreed. The most useful first question is:`,o:[`"Why would you do that?"`,`"Do you know what you've done?"`,`"What were you trying to get?"`,`"Didn't we agree about this?"`],a:2,
+ t:`Every broken rule was getting her something — belonging, relief, attention, a way out. Find that and you can meet it another way. Punish it and it goes underground.`},
+{r:2,q:`She wants to quit something difficult. Which approach is strongest?`,o:[`Let her stop today`,`Force her to continue indefinitely`,`Agree a finish line — one term — after which she may choose`,`Tell her she is being lazy`],a:2,
+ t:`Quitting inside the difficulty teaches her that difficulty is a reason to leave. Finishing the term and then choosing teaches her she can survive it and still decide.`},
+{r:2,q:`Which does the most damage to a girl's confidence over time?`,o:[`One harsh remark from a stranger`,`Small daily criticism at home`,`Failing an exam`,`Losing a competition`],a:1,
+ t:`The stranger is survivable precisely because he is a stranger. Home is where she learns what she is.`},
+{r:2,q:`Which is most likely to wound a Nigerian girl without anybody intending it?`,o:[`Strict rules`,`Being compared to a sibling or a neighbour's child`,`Chores`,`High expectations`],a:1,
+ t:`Comparison teaches her that love is a league table. High expectations without comparison do not do this.`},
+{r:2,q:`Your daughter fails at something. What comes first?`,o:[`"You'll do better next time."`,`"That must have been hard."`,`"What did you learn?"`,`"I told you to prepare."`],a:1,
+ t:`Name the feeling before you extract the lesson. The lesson lands afterwards, or it does not land at all.`},
+{r:2,q:`A girl who cannot accept a compliment is usually:`,o:[`Humble`,`Struggling to believe it`,`Being rude`,`Fishing for more`],a:1,
+ t:`She is not being modest. She is telling you what she believes about herself.`},
+{r:2,q:`The clearest sign of healthy self-esteem in a teenage girl:`,o:[`She is popular`,`She can say no and stay in the friendship`,`She gets good grades`,`She never argues with you`],a:1,
+ t:`Self-respect is not measured by how she performs. It is measured by what she will and will not tolerate.`},
+{r:2,q:`Which builds decision-making?`,o:[`Making the decisions for her`,`Letting her make small decisions and live with the result`,`Explaining your decisions carefully`,`A strict, predictable routine`],a:1,
+ t:`Judgement is a muscle. It is built by small decisions with real, survivable consequences.`},
+{r:2,q:`When a girl says "I can't do it," she usually means:`,o:[`She is lazy`,`She does not enjoy it`,`She is afraid of failing in front of you`,`She wants you to do it`],a:2,
+ t:`Almost always fear, almost never laziness. Treat it as laziness and you confirm what she is afraid of.`},
+{r:2,q:`Which question is more useful after she performs?`,o:[`"You were the best one there."`,`"What did you enjoy most?"`,`"You should have done X."`,`"See, I told you."`],a:1,
+ t:`The first makes her performance about the ranking. The second gives it back to her.`},
+{r:2,q:`A girl's confidence about her body is shaped most by:`,o:[`Magazines and social media`,`What the adults around her say about bodies — including their own`,`Her mirror`,`Her friends`],a:1,
+ t:`She learns how to speak to her body by listening to how you speak to yours.`},
+{r:2,q:`A girl praised only for being "a good girl" learns to:`,o:[`Be good`,`Hide her mistakes`,`Lead others`,`Relax`],a:1,
+ t:`If being good is the whole identity, every mistake becomes a threat to it — so it gets hidden instead of brought to you.`},
+{r:2,q:`Your daughter is strong at something you do not value or understand. What should you do?`,o:[`Redirect her to something useful`,`Take it seriously and find her someone who knows it`,`Allow it only as a hobby`,`Wait and see if it lasts`],a:1,
+ t:`Your approval of the activity is not the point. Being taken seriously by an adult is the point, and that is what she will remember.`},
+{r:2,q:`Strong self-worth protects a girl most from:`,o:[`Failing academically`,`Pressure to be accepted at any cost`,`Illness`,`Disappointment`],a:1,
+ t:`Everything dangerous in adolescence arrives dressed as belonging. A girl who already belongs to herself is harder to recruit.`},
+{r:2,q:`Think Things Through is most useful:`,o:[`After a mistake`,`Before a decision`,`During a punishment`,`At bedtime`],a:1,
+ t:`It is a decision-making tool, not a post-mortem. Used after the fact it is just a lecture with a name.`},
+{r:2,q:`Which phrase builds identity rather than pressure?`,o:[`"You're my beautiful girl."`,`"You're the kind of person who keeps her word."`,`"You're so clever."`,`"You never disappoint me."`],a:1,
+ t:`Name the character, not the trait. She can choose to keep being that person; she cannot choose to keep being clever.`},
+{r:2,q:`A thirteen-year-old is fixated on her appearance. The need underneath is usually:`,o:[`Vanity`,`To be accepted`,`Too much internet`,`A phase to ignore`],a:1,
+ t:`Somebody sold her an ideal. She is not shallow. She is trying to find out whether she is acceptable.`},
+{r:2,q:`Two daughters, very different temperaments. The fairest approach is:`,o:[`Treat them identically`,`Give each what she actually needs`,`Favour the one who tries harder`,`Let them sort it out`],a:1,
+ t:`Identical is not fair. Fair is each child getting what she needs, and being old enough to be told why they differ.`},
+{r:2,q:`What is the most protective thing a girl can have going into adolescence?`,o:[`Strict rules`,`One adult who takes her seriously`,`A good school`,`Strong faith alone`],a:1,
+ t:`Rules, school and faith all matter. But the mechanism running underneath every girl who came through well is one adult whose attention was not guaranteed and who gave it anyway.`},
+{r:3,q:`Someone she does not know messages your daughter asking to chat privately. Which risk?`,o:[`Contact risk`,`Content risk`,`Conduct risk`,`Commercialisation risk`],a:0,
+ t:`Contact: somebody reaching her.`},
+{r:3,q:`A violent video appears in her feed without her looking for it. Which risk?`,o:[`Contact risk`,`Content risk`,`Conduct risk`,`Commercialisation risk`],a:1,
+ t:`Content: what reaches her eyes. She did not go looking — the feed brought it to her.`},
+{r:3,q:`Your daughter posts something cruel about a classmate in a group chat. Which risk?`,o:[`Contact risk`,`Content risk`,`Conduct risk`,`Commercialisation risk`],a:2,
+ t:`Conduct: her own behaviour online. She is not always the one being harmed.`},
+{r:3,q:`A game keeps pressing her to buy coins, and an influencer tells her she needs a product. Which risk?`,o:[`Contact risk`,`Content risk`,`Conduct risk`,`Commercialisation risk`],a:3,
+ t:`Commercialisation: she is being sold to — including being sold a version of herself she should want to be.`},
+{r:3,q:`Which of the four risks do parents overlook most?`,o:[`Contact`,`Content`,`Conduct`,`Commercialisation`],a:2,
+ t:`We watch for what is coming at our daughters. We rarely ask what our daughters are doing to somebody else's daughter.`},
+{r:3,q:`The strongest protection against contact risk for a ten-year-old:`,o:[`A total ban on social media`,`She reports anyone new who messages her, and is never punished for telling`,`Checking her phone secretly at night`,`Setting her account to private`],a:1,
+ t:`A ban ends the day she is somewhere you are not. Secret checks teach her to hide better. The only lasting protection is a child who reports — and children only report where reporting is safe.`},
+{r:3,q:`She tells you she sent a photo she now regrets. What is the very first thing you do?`,o:[`Take the phone`,`Thank her for telling you`,`Ask who has seen it`,`Call the other parents`],a:1,
+ t:`Everything else follows. But if the first thing that happens is punishment, this is the last thing she ever tells you.`},
+{r:3,q:`You want to know what is on her phone. Which approach lasts?`,o:[`Check it secretly at night`,`Agree openly that you will look, and when`,`Never look`,`Install software she does not know about`],a:1,
+ t:`Secret checking works exactly once. Agreed checking is a rule she can live inside, and it keeps the phone a shared object rather than a hiding place.`},
+{r:3,q:`A child says yes to an adult because she is afraid of trouble if she says no. That yes is:`,o:[`Not consent`,`Still consent`,`Consent, since she did not say no`,`It depends on her age`],a:0,
+ t:`A yes given to avoid conflict is not a yes. This is the foundation of everything we teach about body safety — and it applies in our own homes too.`},
+{r:3,q:`Most harm to children comes from:`,o:[`Strangers`,`People online`,`Someone the child already knows and trusts`,`Other children`],a:2,
+ t:`This is the consistent finding across the research, and it is why "don't talk to strangers" has never been enough. Danger usually arrives with a familiar face.`},
+{r:3,q:`Which is a safe secret?`,o:[`A touch nobody else must know about`,`A gift given on condition she says nothing`,`An adult's private messages to her`,`A surprise party for Grandma`],a:3,
+ t:`A surprise has an ending, and everybody finds out. A secret never ends. Teach her the difference in those exact words.`},
+{r:3,q:`We teach a child to tell how many adults?`,o:[`One`,`Two or more`,`Only her mother`,`A teacher`],a:1,
+ t:`Because the first adult may not believe her. Or may not act. Or may be the problem.`},
+{r:3,q:`Grooming usually begins with:`,o:[`A threat`,`Physical contact`,`Gifts, attention, and being made to feel special`,`A message online`],a:2,
+ t:`It begins as the nicest thing that has happened to her. That is exactly why she does not report it — and why a girl who feels unseen at home is more exposed.`},
+{r:3,q:`Your daughter discloses something about a relative. What must you NOT do first?`,o:[`Believe her`,`Write down what she said, in her own words`,`Make sure she is not left alone with that person`,`Question her over and over for more detail`],a:3,
+ t:`Repeated questioning distresses the child and damages the account. Believe her, record her words, keep her safe, then get help from someone trained.`},
+{r:3,q:`She begins telling you something and you say "I warned you about that girl!" Next time she will:`,o:[`Tell you sooner`,`Tell somebody who isn't you`,`Tell you more`,`Trust you more`],a:1,
+ t:`You were right. Being right cost you the next conversation, and the one after that.`},
+{r:3,q:`Which of these makes a child open up again?`,o:[`Giving her the advice straight away`,`Explaining where she went wrong`,`Listening all the way to the end without interrupting`,`Asking why she didn't come to you sooner`],a:2,
+ t:`All four feel like parenting. Only one of them is heard as love.`},
+{r:3,q:`She tells you something that frightens you. What should your face do?`,o:[`Stay steady`,`Show her how alarmed you are`,`Look away`,`Show your disappointment`],a:0,
+ t:`She is watching your face to decide whether to say the rest. Most children stop at the first flinch.`},
+{r:3,q:`"How was school?" — "Fine." What now?`,o:[`"Are you sure?"`,`"Did something bad happen?"`,`"Why won't you talk to me?"`,`"What made you laugh today?"`],a:3,
+ t:`Small, specific and pleasant. A question she can answer without having to decide to have a conversation.`},
+{r:3,q:`Your daughter is being bullied. What comes first?`,o:[`Ring the school immediately`,`Listen fully and believe her`,`Tell her to stand up for herself`,`Contact the other child's parents`],a:1,
+ t:`Every one of the others may follow. But if she feels rushed past, she will not bring you the next one — and there is usually a next one.`},
+{r:3,q:`What has every question in this round been about?`,o:[`Discipline`,`Keeping her talking to you`,`Technology`,`Rules`],a:1,
+ t:`Every answer that worked kept the child talking to you. Every wrong one was a parent being right, being quick, or being in charge. Our daughters are only as safe as their willingness to tell us things.`},
+{r:4,q:`Which country hosted the 2026 BRICS Summit?`,o:[`China`,`India`,`Brazil`,`South Africa`],a:1,
+ t:`India. (After my knowledge cutoff — verify.)`},
+{r:4,q:`In which Indian city was the 2026 BRICS Summit held?`,o:[`Mumbai`,`Bengaluru`,`New Delhi`,`Hyderabad`],a:2,
+ t:`New Delhi. (Verify.)`},
+{r:4,q:`Which country hosted the 2026 NATO Summit?`,o:[`Germany`,`Türkiye`,`France`,`Poland`],a:1,
+ t:`Türkiye. (Verify.)`},
+{r:4,q:`In which city was the 2026 NATO Summit held?`,o:[`Istanbul`,`Ankara`,`Izmir`,`Bursa`],a:1,
+ t:`Ankara, July 2026. (Verify.)`},
+{r:4,q:`Which organisation holds its annual General Assembly in New York?`,o:[`NATO`,`African Union`,`United Nations`,`World Bank`],a:2,
+ t:`The United Nations.`},
+{r:4,q:`Which city hosted the 2026 Winter Olympics?`,o:[`Paris`,`Milan and Cortina d'Ampezzo`,`Oslo`,`Vancouver`],a:1,
+ t:`Milan and Cortina d'Ampezzo, Italy.`},
+{r:4,q:`Which country became the 21st member of the Eurozone in 2026?`,o:[`Bulgaria`,`Romania`,`Croatia`,`Serbia`],a:0,
+ t:`Bulgaria, on 1 January 2026.`},
+{r:4,q:`What currency do Eurozone countries use?`,o:[`Pound`,`Dollar`,`Euro`,`Franc`],a:2,
+ t:`The euro.`},
+{r:4,q:`Which technology dominates global debate about jobs, education, misinformation and security?`,o:[`Fax machines`,`Artificial intelligence`,`Typewriters`,`CD players`],a:1,
+ t:`Artificial intelligence. A freebie — take the point.`},
+{r:4,q:`Which organisation leads global discussion on governing artificial intelligence?`,o:[`United Nations`,`FIFA`,`OPEC`,`Interpol`],a:0,
+ t:`The United Nations.`},
+{r:4,q:`Which country has been at the centre of the war Russia began in 2022?`,o:[`Poland`,`Ukraine`,`Belarus`,`Georgia`],a:1,
+ t:`Ukraine.`},
+{r:4,q:`What is the capital of Ukraine?`,o:[`Kyiv`,`Warsaw`,`Minsk`,`Bucharest`],a:0,
+ t:`Kyiv.`},
+{r:4,q:`Which organisation is a military and political alliance of 32 member countries?`,o:[`NATO`,`OPEC`,`ASEAN`,`BRICS`],a:0,
+ t:`NATO.`},
+{r:4,q:`Which country is the world's largest by land area?`,o:[`China`,`Canada`,`Russia`,`United States`],a:2,
+ t:`Russia.`},
+{r:4,q:`Which country is famous for the Eiffel Tower?`,o:[`Italy`,`Spain`,`France`,`Belgium`],a:2,
+ t:`France.`},
+{r:4,q:`Which countries hosted the 2026 FIFA World Cup?`,o:[`Brazil only`,`Qatar`,`Canada, Mexico and the United States`,`United Kingdom`],a:2,
+ t:`Three host nations for the first time.`},
+{r:4,q:`In 2025 the G20 Summit was held on which continent for the first time?`,o:[`Africa`,`Asia`,`South America`,`Australia`],a:0,
+ t:`Africa — a first in the G20's history.`},
+{r:4,q:`Which country hosted that historic G20 summit?`,o:[`Kenya`,`Egypt`,`South Africa`,`Nigeria`],a:2,
+ t:`South Africa, in 2025.`},
+{r:4,q:`Which country is currently the world's most populous?`,o:[`India`,`China`,`United States`,`Indonesia`],a:0,
+ t:`India overtook China in 2023.`},
+{r:4,q:`Alongside wars and climate, which technology dominated the 2026 UN General Assembly?`,o:[`Blockchain`,`Artificial intelligence`,`3D printing`,`Virtual reality`],a:1,
+ t:`Artificial intelligence and the call for global guardrails.`}
+];
+const SH=["▲","◆","●","■"];
+const MED=["🥇","🥈","🥉"];
+const $=id=>document.getElementById(id);
+const show=id=>{document.querySelectorAll('.scr').forEach(s=>s.classList.toggle('on',s.id===id));window.scrollTo(0,0);};
+
+/* ---------- tiny supabase REST helper ---------- */
+async function sb(path,opt={}){
+  const res=await fetch(SB_URL+"/rest/v1/"+path,{
+    ...opt,
+    headers:{apikey:SB_KEY,Authorization:"Bearer "+SB_KEY,"Content-Type":"application/json",
+      Prefer:opt.prefer||"return=representation",...(opt.headers||{})}
+  });
+  if(!res.ok) throw new Error(await res.text());
+  const txt=await res.text();
+  return txt?JSON.parse(txt):[];
+}
+const get=(t,qs)=>sb(t+"?"+qs);
+const ins=(t,row)=>sb(t,{method:"POST",body:JSON.stringify(row)});
+const upd=(t,qs,row)=>sb(t+"?"+qs,{method:"PATCH",body:JSON.stringify(row)});
+
+/* ---------- shared state ---------- */
+let mode="", code="", me=null, poll=null, tmr=null;
+let qi=0, qStart=0, revealed=false, answered=false;
+let players=[], answers=[], demo=false;
+
+if(!LIVE){ $('modeTag').textContent="Solo mode"; $('modeTag').classList.add('demo'); }
+else { $('cfgNote').style.display="none"; }
+$('rt').textContent = LIVE ? "Connected" : "No server — solo mode only";
+
+/* ---------- home ---------- */
+$('bHost').onclick=()=>{ if(!LIVE){ alert("Add your Supabase keys to host a game with phones. Use 'Try it solo' to see how it works."); return; } startHost(false); };
+$('bSolo').onclick=()=>startHost(true);
+$('bJoin').onclick=()=>{ if(!LIVE){ alert("Joining needs the server keys. Try solo mode instead."); return; } show('s-join'); };
+
+/* ---------- HOST ---------- */
+async function startHost(isDemo){
+  demo=isDemo; mode="host"; players=[]; answers=[];
+  code=String(Math.floor(1000+Math.random()*9000));
+  $('lPin').textContent=demo?"DEMO":code;
+  $('lUrl').textContent=demo?"Solo mode — no phones needed":location.href.split('#')[0].split('?')[0];
+  show('s-lobby'); paintLobby();
+  if(demo){ fakeJoin(); return; }
+  try{ await ins("pgn_games",{code:code,q:-1,state:"lobby"});
+       poll=setInterval(pullPlayers,1300); }
+  catch(e){ alert("Could not reach the server.\n\n"+e.message); show('s-home'); }
+}
+function fakeJoin(){
+  const names=["Mrs Okafor","Chidinma","Mr Bello","Aunty Ify","Mrs Danjuma","Tolu","Mama Zara"];
+  let n=0;
+  const t=setInterval(()=>{ if(n>=names.length||mode!=="host"){clearInterval(t);return;}
+    players.push({id:n+1,name:names[n++],score:0}); paintLobby(); },700);
+}
+async function pullPlayers(){
+  try{ players=await get("pgn_players","code=eq."+code+"&select=*&order=id"); paintLobby(); }catch(e){}
+}
+function paintLobby(){
+  $('lCount').textContent=players.length;
+  $('lNames').innerHTML=players.map(p=>'<span class="nm">'+esc(p.name)+'</span>').join('');
+  $('lHint').textContent=players.length?("Ready when you are."):"Waiting for players…";
+}
+$('bStart').onclick=()=>{ qi=0; askQ(); };
+
+async function askQ(){
+  revealed=false; answers=[];
+  const x=Q[qi];
+  $('qRound').textContent="Round "+(x.r+1)+" · "+R[x.r];
+  $('qCount').textContent="Question "+(qi+1)+" of "+Q.length;
+  $('qText').textContent=x.q;
+  $('qOpts').className="opts";
+  $('qOpts').innerHTML=x.o.map((o,n)=>
+    '<div class="opt o'+n+(n===x.a?' win':'')+'"><span class="sh">'+SH[n]+
+    '</span><span>'+esc(o)+'</span><span class="ct" data-c="'+n+'"></span></div>').join('');
+  $('qTeach').innerHTML="";
+  $('bReveal').disabled=false;
+  show('s-q');
+  qStart=Date.now();
+  runTimer($('qFill'),()=>doReveal());
+  if(!demo){ try{ await upd("pgn_games","code=eq."+code,{q:qi,state:"question",updated_at:new Date().toISOString()}); }catch(e){}
+    clearInterval(poll); poll=setInterval(pullAnswers,1000); }
+  else { fakeAnswers(); }
+}
+function fakeAnswers(){
+  answers=[];
+  players.forEach(p=>{ const d=600+Math.random()*12000;
+    setTimeout(()=>{ if(mode!=="host"||revealed) return;
+      const good=Math.random()<0.62;
+      let c=Q[qi].a; if(!good){ do{c=Math.floor(Math.random()*4);}while(c===Q[qi].a); }
+      answers.push({player_id:p.id,choice:c,ms:Math.round(d)}); paintCounts(); },d); });
+}
+async function pullAnswers(){
+  try{ answers=await get("pgn_answers","code=eq."+code+"&q=eq."+qi+"&select=*"); paintCounts(); }catch(e){}
+}
+function paintCounts(){
+  $('qIn').textContent=answers.length+" of "+players.length+" answered";
+  if(!revealed) return;
+  [0,1,2,3].forEach(n=>{ const el=$('qOpts').querySelector('[data-c="'+n+'"]');
+    if(el) el.textContent=answers.filter(a=>a.choice===n).length; });
+}
+function doReveal(){
+  if(revealed) return; revealed=true; stopTimer();
+  $('bReveal').disabled=true;
+  $('qOpts').classList.add('dim');
+  const x=Q[qi];
+  $('qTeach').innerHTML='<div class="teach"><b>Say this out loud</b><p>'+esc(x.t)+'</p></div>';
+  paintCounts();
+  // score
+  answers.forEach(a=>{ const p=players.find(p=>String(p.id)===String(a.player_id)); if(!p) return;
+    if(a.choice===x.a){ p.score=(p.score||0)+Math.max(400,Math.round(1000*(1-Math.min(a.ms,LIMIT)/LIMIT/2))); } });
+  if(!demo){ clearInterval(poll);
+    upd("pgn_games","code=eq."+code,{state:"reveal"}).catch(()=>{});
+    players.forEach(p=>upd("pgn_players","id=eq."+p.id,{score:p.score||0}).catch(()=>{}));
+  }
+}
+$('bReveal').onclick=doReveal;
+$('bNext').onclick=()=>{ if(!revealed) doReveal();
+  if(qi>=Q.length-1){ showBoard(true); return; }
+  qi++; askQ(); };
+$('bBoard').onclick=()=>showBoard(false);
+$('bBack').onclick=()=>show('s-q');
+function showBoard(final){
+  stopTimer();
+  const rank=[...players].sort((a,b)=>(b.score||0)-(a.score||0));
+  $('bTitle').textContent=final?"Final scores":"Leaderboard";
+  $('bSub').textContent=final?"That is the game. Thank you for coming.":("After question "+(qi+1));
+  $('bList').innerHTML=rank.map((p,n)=>'<div class="lrow"><span class="md">'+(MED[n]||"")+
+    '</span><span class="n">'+esc(p.name)+'</span><span class="v">'+(p.score||0)+'</span></div>').join('')
+    || '<p class="sub">No players yet.</p>';
+  if(!demo) upd("pgn_games","code=eq."+code,{state:final?"podium":"board"}).catch(()=>{});
+  show('s-board');
+}
+
+/* ---------- PLAYER ---------- */
+$('bEnter').onclick=async()=>{
+  const c=$('jCode').value.trim(), n=$('jName').value.trim();
+  if(!/^\d{4}$/.test(c)) return jerr("That code should be four digits.");
+  if(!n) return jerr("Please put your name in.");
+  try{
+    const g=await get("pgn_games","code=eq."+c+"&select=code");
+    if(!g.length) return jerr("No game with that code. Check the big screen.");
+    const row=await ins("pgn_players",{code:c,name:n,score:0});
+    me=row[0]; code=c; mode="play"; show('s-play');
+    poll=setInterval(pullGame,1000);
+  }catch(e){ jerr("Could not reach the game. "+e.message); }
+};
+function jerr(m){ $('jErr').textContent=m; $('jErr').classList.add('on'); }
+let lastQ=-99, lastState="";
+async function pullGame(){
+  try{
+    const g=(await get("pgn_games","code=eq."+code+"&select=*"))[0]; if(!g) return;
+    if(g.q!==lastQ && g.state==="question"){ lastQ=g.q; playerAsk(g.q); }
+    else if(g.state!==lastState){
+      if(g.state==="reveal") playerReveal();
+      if(g.state==="board"||g.state==="podium") playerBoard(g.state==="podium");
+    }
+    lastState=g.state;
+  }catch(e){}
+}
+function playerAsk(n){
+  answered=false;
+  $('pWait').style.display="none"; $('pAsk').style.display="block";
+  $('pQn').textContent="Question "+(n+1)+" — tap your answer";
+  $('pOpts').innerHTML=Q[n].o.map((o,k)=>
+    '<button class="opt o'+k+'" data-k="'+k+'"><span class="sh">'+SH[k]+'</span></button>').join('');
+  $('pOpts').querySelectorAll('button').forEach(b=>b.onclick=()=>sendAnswer(n,Number(b.dataset.k)));
+  qStart=Date.now();
+  runTimer($('pFill'),()=>{ if(!answered) waitMsg("⏳","Time","Look at the big screen."); });
+}
+async function sendAnswer(n,k){
+  if(answered) return; answered=true; stopTimer();
+  try{ await ins("pgn_answers",{code:code,player_id:me.id,q:n,choice:k,ms:Date.now()-qStart}); }catch(e){}
+  waitMsg("✓","Answer locked in","Eyes on the big screen.");
+}
+function waitMsg(mk,msg,sub){
+  $('pAsk').style.display="none"; $('pWait').style.display="block";
+  $('pMark').textContent=mk; $('pMsg').textContent=msg; $('pSub').textContent=sub; $('pLead').innerHTML="";
+}
+function playerReveal(){ if(!answered) waitMsg("—","No answer","Next one, be quicker."); }
+async function playerBoard(final){
+  try{
+    const ps=await get("pgn_players","code=eq."+code+"&select=*&order=score.desc");
+    const pos=ps.findIndex(p=>String(p.id)===String(me.id))+1;
+    waitMsg(final?"🏁":"📊", final?("You finished "+pos+(pos===1?"st":pos===2?"nd":pos===3?"rd":"th")):("You are "+pos+" of "+ps.length),"");
+    $('pLead').innerHTML=ps.slice(0,5).map((p,n)=>'<div class="lrow'+(String(p.id)===String(me.id)?" me":"")+
+      '"><span class="md">'+(MED[n]||"")+'</span><span class="n">'+esc(p.name)+
+      '</span><span class="v">'+(p.score||0)+'</span></div>').join('');
+  }catch(e){}
+}
+
+/* ---------- helpers ---------- */
+function runTimer(el,done){
+  stopTimer(); const t0=Date.now(); el.style.width="100%";
+  tmr=setInterval(()=>{ const left=Math.max(0,LIMIT-(Date.now()-t0));
+    el.style.width=(left/LIMIT*100)+"%";
+    if(left<=0){ stopTimer(); done&&done(); } },200);
+}
+function stopTimer(){ if(tmr){clearInterval(tmr);tmr=null;} }
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+document.addEventListener('keydown',e=>{
+  if(/^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
+  if(mode!=="host") return;
+  if(e.key==='r'||e.key==='R') doReveal();
+  if(e.key==='ArrowRight') $('bNext').click();
+  if(e.key==='l'||e.key==='L') $('bBoard').click();
+});
+</script>
+</body>
+</html>
