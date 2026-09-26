@@ -166,7 +166,7 @@
   <h2 class="sec" id="bTitle">Leaderboard</h2>
   <p class="sub" id="bSub"></p>
   <div class="lead" id="bList"></div>
-  <div class="row" style="margin-top:20px"><button class="btn go" id="bBack">Back to the quiz</button></div>
+  <div class="row" style="margin-top:20px"><button class="btn go" id="bBack">Start the next round ›</button></div>
 </section>
 
 <!-- ---------- PLAYER ---------- -->
@@ -385,7 +385,7 @@ const upd=(t,qs,row)=>sb(t+"?"+qs,{method:"PATCH",body:JSON.stringify(row)});
 /* ---------- shared state ---------- */
 let mode="", code="", me=null, poll=null, tmr=null;
 let qi=0, qStart=0, revealed=false, answered=false;
-let players=[], answers=[], demo=false;
+let players=[], answers=[], demo=false, pendingRound=false;
 
 if(!LIVE){ $('modeTag').textContent="Solo mode"; $('modeTag').classList.add('demo'); }
 else { $('cfgNote').style.display="none"; }
@@ -478,14 +478,26 @@ function doReveal(){
 $('bReveal').onclick=doReveal;
 $('bNext').onclick=()=>{ if(!revealed) doReveal();
   if(qi>=Q.length-1){ showBoard(true); return; }
-  qi++; askQ(); };
+  const endOfRound = Q[qi+1] && Q[qi+1].r !== Q[qi].r;
+  qi++;
+  if(endOfRound){ pendingRound=true; showBoard(false); return; }
+  askQ(); };
 $('bBoard').onclick=()=>showBoard(false);
-$('bBack').onclick=()=>show('s-q');
+$('bBack').onclick=()=>{ if(pendingRound){ pendingRound=false; askQ(); } else { show('s-q'); } };
 function showBoard(final){
   stopTimer();
   const rank=[...players].sort((a,b)=>(b.score||0)-(a.score||0));
-  $('bTitle').textContent=final?"Final scores":"Leaderboard";
-  $('bSub').textContent=final?"That is the game. Thank you for coming.":("After question "+(qi+1));
+  if(final){
+    $('bTitle').textContent="Final scores";
+    $('bSub').textContent="That is the game. Thank you for coming.";
+  } else if(pendingRound){
+    const done=Q[qi-1].r;
+    $('bTitle').textContent="End of Round "+(done+1)+" — "+R[done];
+    $('bSub').textContent="Next up: Round "+(Q[qi].r+1)+" · "+R[Q[qi].r];
+  } else {
+    $('bTitle').textContent="Leaderboard";
+    $('bSub').textContent="After question "+(qi+1);
+  }
   $('bList').innerHTML=rank.map((p,n)=>'<div class="lrow"><span class="md">'+(MED[n]||"")+
     '</span><span class="n">'+esc(p.name)+'</span><span class="v">'+(p.score||0)+'</span></div>').join('')
     || '<p class="sub">No players yet.</p>';
